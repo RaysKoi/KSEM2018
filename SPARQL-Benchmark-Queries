@@ -1,0 +1,225 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%  LUBM queries
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+## LUBM Queries
+
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+PREFIX ub: <http://swat.cse.lehigh.edu/onto/univ-bench.owl#>
+
+L1-L14: Same as LUBM Q1-Q14 at \url{http://swat.cse.lehigh.edu/projects/lubm/queries-sparql.txt} respectively.
+
+L15: SELECT ?a1 ?a2 ?a3 ?a4 WHERE {?a4 rdf:type ub:University. ?a1 rdf:type ub:GraduateStudent. ?a1 ub:advisor ?a2. ?a2 ub:worksFor ?a3. ?a3 ub:subOrganizationOf ?a4. ?a2 rdf:type ub:FullProfessor. ?a3 rdf:type ub:Department. }
+
+L15_{sel}: L15 with pattern {?a4 ub:name "University7". }
+
+L16: SELECT ?x ?y ?z WHERE {?x rdf:type ub:GraduateStudent. ?y rdf:type ub:University.
+ ?z rdf:type ub:Department.
+ ?c rdf:type ub:GraduateCourse.
+ ?x ub:takesCourse ?c.
+ ?p rdf:type ub:FullProfessor.
+ ?p ub:teacherOf ?c.
+ ?p ub:worksFor ?z.
+ ?x ub:memberOf ?z.
+ ?x ub:undergraduateDegreeFrom ?y.
+ ?z ub:subOrganizationOf ?y }
+
+L16_{sel}:L16 with pattern {?y ub:name "University6". }
+
+L17: SELECT ?x ?y ?p ?b ?c WHERE{?x rdf:type ub:GraduateStudent.
+ ?x rdf:type ub:TeachingAssistant.
+ ?x ub:advisor ?p.
+ ?x ub:takesCourse ?c.
+ ?x ub:memberOf ?z.
+ ?x ub:undergraduateDegreeFrom ?y.
+ ?y rdf:type ub:University.
+ ?c rdf:type ub:GraduateCourse.
+ ?p ub:worksFor ?z.
+ ?p rdf:type ub:AssociateProfessor.
+ ?z ub:subOrganizationOf ?y.
+ ?z rdf:type ub:Department.
+ ?b rdf:type ub:Publication.
+ ?p ub:teacherOf ?c.
+ ?b ub:publicationAuthor ?x. }
+
+L17_{sel}: L17 with pattern {?Y ub:name "University786" }.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%  SNIB queries
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+##SNIB Queries:
+
+PREFIX foaf: <http://xmlns.com/foaf/0.1/>
+
+PREFIX dc: <http://purl.org/dc/elements/1.1/>
+
+PREFIX sioc: <http://rdfs.org/sioc/ns#>
+
+PREFIX sioct: <http://rdfs.org/sioc/type#>
+
+PREFIX sib: <http://www.ins.cwi.nl/sib/vocabulary/>
+
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+
+PREFIX dbp: <http://dbpedia.org/resource/>
+
+S1: SELECT ?user ?commentcontent ?commentdate WHERE {?user foaf:knows ?friend.
+ ?user rdf:type sib:User.
+ ?friend rdf:type sib:User.
+ ?friend sioc:moderator_of ?forum.
+ ?post sib:hashtag dbp:Creek .
+ ?post rdf:type sioc:Post.
+ ?forum sioc:container_of ?post.
+ ?post sioc:content ?postcontent.
+ ?post sioc:container_of ?postcomment.
+ ?postcomment rdf:type sioc:Item.
+ ?postcomment sioc:content ?commentcontent.
+ ?postcomment dc:created ?commentdate. }
+
+S2: SELECT ?user1 ?user2 ?friend WHERE {?user1 foaf:knows ?user2.
+ ?user2 foaf:knows ?friend .
+ ?friend foaf:knows ?user1 .
+ ?user1 rdf:type sib:User .
+ ?user2 rdf:type sib:User .
+ ?friend rdf:type sib:User .
+ ?friend sioc:creator_of ?post.
+ ?post rdf:type sioc:Post .
+ ?post sioc:content ?postcontent.
+ ?post sib:hashtag dbp:Creek .
+ ?post sib:liked_by ?user1 }
+
+S3: SELECT ?user0 ?friend ?photo WHERE {
+        ?user0 rdfs:type sib:User.
+        ?friend rdfs:type sib:User .
+        ?photo rdfs:type sib:Photo .
+        {
+            ?friend foaf:knows ?user0.
+        }
+        OPTIONAL {
+            ?friend foaf:knows ?u2 .
+            ?u2 foaf:knows ?user0 .
+        }
+        ?photo sib:usertag ?friend.
+        ?photo dbp:location "Germany" .
+        ?user0 sib:liked_by ?photo .
+        FILTER EXISTS {
+            ?pa sioc:container_of ?photo .
+            ?pa rdfs:type type:ImageGallery .
+            { ?u2 sioc:creator_of ?pa . } UNION { ?user0 sioc:creator_of ?pa . }
+        }
+ }
+
+S4: SELECT ?user1 WHERE{
+ ?user1 rdf:type sib:User .
+ ?user2 rdf:type sib:User .
+ ?photo rdfs:type sib:Photo.
+ ?user2 sioc:creator_of ?pa.
+ ?photo sib:usertag ?user1.
+ ?pa rdfs:type sioct:ImageGallery.
+        ?user1 sib:In_relationship_with ?user2.
+        ?pa sioc:container_of ?photo.
+        ?user2 sioc:creator_of ?pa.
+OPTIONAL {
+?post sib:liked_by ?user1.
+?post sioc:content ?postcontent.
+?post sib:hashtag dbp:Creek .
+} 
+}
+
+S5: SELECT ?u1 ?u2 WHERE {?f sib:memb ?u1.
+ ?f sib:memb ?u2.
+ ?u2 foaf:knows ?u1.
+ ?u3 foaf:knows ?u2.
+ ?u3 foaf:knows ?u1.
+ ?u1 rdf:type sib:User.
+ ?u2 rdf:type sib:User.
+ ?u3 rdf:type sib:User.
+ ?p sib:hashtag dbp:Hummelshof.
+ ?u1 sioc:creator_of ?p.
+ ?p rdf:type sioc:Post.
+ ?forum sioc:container_of ?p.
+ ?forum sioc:container_of ?c.
+ ?c rdf:type sioc:Item.
+ ?u2 sioc:creator_of ?c.
+ ?c sioc:reply_of ?p.
+ ?p sib:liked_by ?u2. }
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%  DBpedia queries
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+##DBpedia Queries:
+
+PREFIX dbp: <http://dbpedia.org/> 
+
+PREFIX r: <http://dbpedia.org/resource/>
+
+PREFIX p: <http://dbpedia.org/property/> 
+
+PREFIX o: <http://dbpedia.org/ontology/>
+
+PREFIX owl: <http://www.w3.org/2002/07/owl#> 
+
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#> 
+
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+
+D1: SELECT ?club WHERE { 
+     { ?club  p:league r:Premier_League.}
+     UNION
+     {?club p:league  r:Scottish_Premier_League.}
+      UNION
+     {?club p:league  r:Football_League_One.}
+     UNION
+     {?club p:league  r:Football _League _Championship.}
+     UNION
+     {?club p:league  r:Football_League _Two.}
+  }
+
+
+D2: SELECT DISTINCT ?v1 ?v2 WHERE {  
+?v1 rdf:type o:Wrestler . 
+?v2 rdfs:label ?v2 . 
+FILTER regex(str(?v2), "sep", "i") 
+} 
+
+D3: SELECT ?v1 ?v2 WHERE { 
+{ ?v1 rdf:type o:Settlement.
+?v1 p:population ?v2. 
+FILTER ( xsd:integer(?v2) > 54 ) } 
+UNION { 
+?v1 rdf:type o:Settlement.
+?v1 p:populationUrban ?v2.
+ FILTER ( xsd:integer(?v2) > 54 ) 
+} }
+
+D4: SELECT ?v1 ?v2 ?v3 ?v4 ?v5 WHERE { 
+{ r:Treehouse_of_Horror _XX ?v1 ?v2. 
+?v2 foaf:name ?v4. } 
+UNION { 
+?v3 ?v1 r:Treehouse_of _Horror _XX ; 
+?v3 foaf:name ?v5.
+ } }
+
+ D5: SELECT ?v1 ?v2 ?v3 ?v4 ?v5 WHERE{
+?v1 rdf:type o:Artist. ?v1 p:name ?v2. ?v1 p:pages ?v3. ?v1 p:isbn ?v4.  ?v1 p:author ?v5.} 
+
+D6: SELECT ?V1 ?v2 ?v3 WHERE {  
+?v1 rdf:type o:Settlement.
+?v1 rdfs:label "Djanet". 
+?v2 rdf:type o:Airport. 
+{ ?v2 o:city ?v1.} 
+UNION { ?v2 o:iataLocationIdentifier ?v3. } 
+UNION { 
+?v2 o:location ?v1. } 
+{ ?v2 p:iata ?v3. } 
+OPTIONAL { ?v2 foaf:homepage ?v5. } 
+OPTIONAL { ?v2 p:nativename ?v4. }
+ } 
